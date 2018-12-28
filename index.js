@@ -114,6 +114,7 @@ app.post('/register', (req, res) => {
   });
 });
 
+//Adding user to db
 app.get('/register/:key', (req, res) => {
   const key = req.params.key;
   db.read('register', 'userKey', key)
