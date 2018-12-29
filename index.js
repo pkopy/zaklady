@@ -17,6 +17,7 @@ const bet = require('./lib/bet')
 let session = []
 
 app.use(cors());
+app.use(express.static('public'));
 
 //Required data: name, email, password
 app.post('/register', (req, res) => {
@@ -225,19 +226,23 @@ app.post('/bet', (req, res) => {
 // });
 
 match = (bets) => {
-  const arr =[]
+  const arr = []
   return new Promise((res, rej) => {
     bets.forEach(bet => {
       db.read('match_', 'id', bet.id_match)
       .then(data => {
         bet.match = data 
         arr.push(bet)
-      })
-      .catch(err => console.log(err))
-    })
-    res(arr)
-  }) 
-}
+        if(arr.length === bets.length) {
+          res(arr)
+        } 
+      }) 
+      .catch(err => {
+        rej(err)
+      });
+    });
+  });
+};
 
 
 //Required data: token, email
@@ -262,7 +267,7 @@ app.get('/user', (req, res) => {
               userObj.bets = data
               helpers.response(res, 200, userObj)
             })
-            .catch(err => console.log(err))
+            .catch(err => console.log('err' + err))
           })
           .catch(() => {
             userObj.bets = []
