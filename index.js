@@ -220,6 +220,9 @@ app.post('/login', (req, res) => {
 app.post('/bet', (req, res) => {
   bet.post(req, res);
 });
+app.get('/bet', (req, res) => {
+  bet.get(req, res);
+});
 
 // app.get('/(\\w+)', (req, res) => {
 //   helpers.response(res, 400, {'Error' : 'Not Found'})
