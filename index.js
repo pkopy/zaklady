@@ -262,6 +262,7 @@ app.get('/user', (req, res) => {
           const userObj = {
             'name' : dataUser[0].name,
             'email' : dataUser[0].email,
+            'accessLevel' : dataUser[0].access
           }
           db.read('bet', 'id_user', dataUser[0].id)
           .then(betsData => {
