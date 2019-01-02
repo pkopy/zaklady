@@ -33,11 +33,7 @@ app.post('/register', (req, res) => {
 
       db.read('user', 'email', email)
         .then(() => {
-          res.writeHead(403, {
-            'Content-Type': 'application/json'
-          });
-          res.write(JSON.stringify({'Error' : 'This email address is already exist'}))
-          res.end()
+          helpers.response(res, 403, {'Error' : 'This email address is already exist'});
         })
         .catch(() => {
           const hashedPassword = helpers.hash(password);
@@ -53,65 +49,38 @@ app.post('/register', (req, res) => {
           }
           db.read('register', 'ip', user.ip)
             .then(data => {
-              // console.log(data)
               if (Array.isArray(data) && Date.now() - data[0].date < 10000) {
-                res.writeHead(403, {
-                  'Content-Type': 'application/json'
-                });
-                res.write(JSON.stringify({'Message' : 'You must wait a moment'}));
-                res.end();
+                helpers.response(res, 403, {'Message' : 'You must wait a moment'});
+                
               } else {
                 if (Array.isArray(data) && data[0]) {
-                  // console.log(data)
                   db.delete('register', 'id', data[0].id).catch(data => console.log(data));
                   db.create('register', user)
                     .then(data => {
                       helpers.sendEmail(email, userKey);
-                      
-                      res.writeHead(200, {
-                        'Content-Type': 'application/json'
-                      });
-                      res.write(JSON.stringify({'InsertId' : data.insertId}));
-                      res.end();
+                      helpers.response(res, 200, {'InsertId' : data.insertId});
                     })
                     .catch(data => {
-                      res.writeHead(403, {
-                        'Content-Type': 'application/json'
-                      });
-                      res.write(JSON.stringify({ 'Error': data }));
-                      res.end();
+                      helpers.response(res, 403, {'Error': data });
                     });
+                  }
+                  
                 }
-
-              }
-            })
-            .catch(() => {
-              db.create('register', user)
+              })
+              .catch(() => {
+                db.create('register', user)
                 .then(data => {
                   helpers.sendEmail(email, userKey);
-                  
-                  res.writeHead(200, {
-                    'Content-Type': 'application/json'
-                  });
-                  res.write(JSON.stringify({'InsertId' : data.insertId}));
-                  res.end();
+                  helpers.response(res, 200, {'InsertId' : data.insertId});
                 })
                 .catch(data => {
-                  res.writeHead(403, {
-                    'Content-Type': 'application/json'
-                  });
-                  res.write(JSON.stringify({ 'Error': data }));
-                  res.end();
+                  helpers.response(res, 403, {'Error': data });
                 });
             });
         });
       
     } else {
-      res.writeHead(403, {
-        'Content-Type': 'application/json'
-      });
-      res.write(JSON.stringify({'Error' : 'Missing required field(s)'}))
-      res.end()
+      helpers.response(res, 403, {'Error' : 'Missing required field(s)'});
     }
   });
 });
@@ -126,31 +95,17 @@ app.get('/register/:key', (req, res) => {
       delete userObj.userKey;
       delete userObj.id;
       userObj.access = 0;
-      // console.log(userObj)
       db.create('user', userObj)
       .then(() => {
-        console.log(registerId)
           db.delete('register', 'id', registerId).catch(data => console.log(data));
-          res.writeHead(200, {
-            'Content-Type': 'application/json'
-          });
-          res.write(JSON.stringify({ 'Info': `New user has been added` }));
-          res.end();
+          helpers.response(res, 200, { 'Info': `New user has been added` });
         })
         .catch(err => {
-          res.writeHead(403, {
-            'Content-Type': 'application/json'
-          });
-          res.write(JSON.stringify({ 'Error': err }));
-          res.end();
+          helpers.response(res, 403, {'Error': err});
         });
-    })
-    .catch(() => {
-      res.writeHead(403, {
-        'Content-Type': 'application/json'
-      });
-      res.write(JSON.stringify({ 'Error': 'User key is not valid' }));
-      res.end();
+      })
+      .catch(() => {
+      helpers.response(res, 403, {'Error': 'User key is not valid'});
     });
 });
 
@@ -181,37 +136,20 @@ app.post('/login', (req, res) => {
           //Store the token
           _data.create('tokens', tokenId, tokenObject, (err) => {
             if (!err) {
-              res.writeHead(200, {
-                'Content-Type': 'application/json'
-              });
-              res.write(JSON.stringify(tokenObject))
-              res.end()
+              helpers.response(res, 200, tokenObject);
             } else {
-              res.writeHead(500, {
-                'Content-Type': 'application/json'
-              });
-              res.write(JSON.stringify({'Error' : 'Could not create the new token'}))
-              res.end()
-              
+              helpers.response(res, 500, {'Error' : 'Could not create the new token'});
             }
           });
         } else {
-          res.writeHead(400, {
-            'Content-Type': 'application/json'
-          });
-          res.write(JSON.stringify({'Error' : 'Password did not match the specified user\'s stored password'}))
-          res.end()
+          helpers.response(res, 400, {'Error' : 'Password did not match the specified user\'s stored password'});
         }
       })
-      .catch((err) => {
+      .catch(err => {
         helpers.response(res, 403, {'Error' : 'This email does not exist'});
       })
     } else {
-      res.writeHead(403, {
-        'Content-Type': 'application/json'
-      });
-      res.write(JSON.stringify({'Error' : 'Missing required field(s)'}))
-      res.end()
+      helpers.response(res, {'Error' : 'Missing required field(s)'});
     }
   });
 });
@@ -226,24 +164,7 @@ app.all('/bet', (req, res) => {
 //   helpers.response(res, 400, {'Error' : 'Not Found'})
 // });
 
-match = (bets) => {
-  const arr = []
-  return new Promise((res, rej) => {
-    bets.forEach(bet => {
-      db.read('match_', 'id', bet.id_match)
-      .then(data => {
-        bet.match = data 
-        arr.push(bet)
-        if(arr.length === bets.length) {
-          res(arr)
-        } 
-      }) 
-      .catch(err => {
-        rej(err)
-      });
-    });
-  });
-};
+
 
 
 //Required data: token, email
@@ -264,7 +185,7 @@ app.get('/user', (req, res) => {
           }
           db.read('bet', 'id_user', dataUser[0].id)
           .then(betsData => {
-            match(betsData)
+            helpers.allMatch(betsData)
             .then(data => {
               userObj.bets = data
               helpers.response(res, 200, userObj)
@@ -304,32 +225,19 @@ app.get('/test/:id', (req, res) => {
   
   db.read('competition', 'id', id)
     .then(data => {
-      let obj = data[0];
+      let objCompetition = data[0];
       db.read('match_', 'id_comp', id)
-        .then((dataMatch) => {
-          
-        obj.matches = dataMatch;
-        res.writeHead(200, {
-          'Content-Type': 'application/json'
-        });
-        res.write(JSON.stringify(obj))
-        res.end()
+        .then((dataMatch) => {  
+        objCompetition.matches = dataMatch;
+        helpers.response(res, 200, objCompetition)
       })
       .catch(() => {
-        obj.matches = [];
-        res.writeHead(200, {
-          'Content-Type': 'application/json'
-        });
-        res.write(JSON.stringify(obj))
-        res.end()
+        objCompetition.matches = [];
+        helpers.response(res, 200, objCompetition)
       });
     })
     .catch(err => {
-      res.writeHead(404, {
-        'Content-Type': 'application/json'
-      });
-      res.write(JSON.stringify(err))
-      res.end()
+      helpers.response(res, 404, err)
     })
 });
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
