@@ -190,7 +190,7 @@ app.get('/user', (req, res) => {
               userObj.bets = data
               helpers.response(res, 200, userObj)
             })
-            .catch(err => console.log('err' + err))
+            .catch(err => console.log('err ' + err))
           })
           .catch(() => {
             userObj.bets = []
