@@ -216,13 +216,11 @@ app.post('/login', (req, res) => {
   });
 });
 
-//Required data: token, email, bet: id user, id match, bet
-app.post('/bet', (req, res) => {
-  bet.post(req, res);
+
+app.all('/bet', (req, res) => {
+  bet.start(req, res);
 });
-app.get('/bet', (req, res) => {
-  bet.get(req, res);
-});
+
 
 // app.get('/(\\w+)', (req, res) => {
 //   helpers.response(res, 400, {'Error' : 'Not Found'})
