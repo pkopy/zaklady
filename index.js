@@ -1,6 +1,6 @@
 /*
  *
- * Primary file for API test
+ * Primary file for API
  *
  */
 
